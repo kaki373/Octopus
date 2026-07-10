@@ -1,0 +1,56 @@
+:root {
+  /* Sleek neutral-dark theme. --panel must match titleBarOverlay color in electron/main.ts. */
+  --bg: #0f1115;
+  --panel: #101216;
+  --raised: #171a21;
+  --border: rgba(255, 255, 255, 0.08);
+  --border-strong: rgba(255, 255, 255, 0.16);
+  --text: #e8eaed;
+  --text-dim: #9aa3b2;
+  --accent: #4f8cff;
+  --accent-strong: #74a4ff;
+  --accent-soft: rgba(79, 140, 255, 0.16);
+  --danger: #ff6b60;
+
+  color: var(--text);
+  background: var(--bg);
+  color-scheme: dark;
+  font-family: "Segoe UI Variable", "Segoe UI", sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  overflow: hidden;
+}
+
+button,
+select,
+input {
+  font: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+button:disabled {
+  cursor: default;
+  opacity: 0.45;
+}
