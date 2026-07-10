@@ -57,6 +57,7 @@ declare global {
     videoVolume?: number
     videoMuted?: boolean
     filmstripVisible?: boolean
+    fileBadgeVisible?: boolean
     videoBarHidden?: boolean
     videoBarWidth?: number | null
     videoBarX?: number
@@ -82,6 +83,7 @@ declare global {
       getSettings(): Promise<ViewerSettings>
       updateSettings(partial: ViewerSettings): Promise<void>
       deleteItem(filePath: string): Promise<{ deleted: boolean; error?: string }>
+      setWindowDrag(active: boolean): void
       showInFolder(filePath: string): Promise<void>
       getThumbnail(filePath: string): Promise<string | null>
       getMediaUrl(filePath: string): string

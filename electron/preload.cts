@@ -28,6 +28,7 @@ contextBridge.exposeInMainWorld('viewerApi', {
   updateSettings: (partial: Record<string, unknown>) =>
     ipcRenderer.invoke('viewer:update-settings', partial),
   deleteItem: (filePath: string) => ipcRenderer.invoke('viewer:delete-item', filePath),
+  setWindowDrag: (active: boolean) => ipcRenderer.send('viewer:window-drag', active),
   showInFolder: (filePath: string) => ipcRenderer.invoke('viewer:show-in-folder', filePath),
   getThumbnail: (filePath: string) => ipcRenderer.invoke('viewer:get-thumbnail', filePath),
   // Must stay in sync with toMediaUrl in electron/main.ts.

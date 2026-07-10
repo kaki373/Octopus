@@ -115,10 +115,43 @@
   border-color: var(--border-strong);
 }
 
-.ghost-button.danger:hover:not(:disabled) {
-  color: #ffb4ae;
-  background: rgba(255, 107, 96, 0.12);
-  border-color: rgba(255, 107, 96, 0.42);
+.ghost-button.icon-button {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  padding: 0;
+}
+
+.ghost-button.icon-button svg {
+  width: 15px;
+  height: 15px;
+  fill: currentColor;
+}
+
+/* Solid dark background so the dropdown list matches the app theme; the
+   shared translucent white would render as a light popup. */
+.toolbar-select,
+.toolbar-select option {
+  background-color: var(--raised);
+}
+
+.ghost-button.icon-button.active {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+}
+
+.settings-menu {
+  position: fixed;
+  top: 44px;
+  z-index: 30;
+  display: grid;
+  gap: 6px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: 1px solid var(--border-strong);
+  background: var(--raised);
+  box-shadow: 0 16px 44px rgba(0, 0, 0, 0.5);
+  -webkit-app-region: no-drag;
 }
 
 .zoom-button {
@@ -530,12 +563,7 @@
   bottom: 82px;
 }
 
-.badge-row > .hint-card:not(.fit-mode-card) {
-  display: none;
-}
-
-.badge,
-.hint-card {
+.badge {
   display: inline-flex;
   gap: 8px;
   align-items: center;
@@ -545,10 +573,6 @@
   color: var(--text);
   background: rgba(16, 18, 22, 0.85);
   border: 1px solid var(--border);
-}
-
-.hint-card {
-  pointer-events: auto;
 }
 
 .filmstrip {
@@ -686,11 +710,18 @@
   border-color: rgba(255, 107, 96, 0.35);
 }
 
-.hint-list {
-  margin-top: 16px;
-  display: grid;
-  gap: 8px;
-  color: var(--text-dim);
-  font-size: 13px;
-  text-align: left;
+.drop-hero {
+  margin: 0;
+  font-size: clamp(28px, 4.6vw, 54px);
+  font-weight: 330;
+  letter-spacing: 0.34em;
+  /* Balances the trailing letter-space so the line sits optically centered. */
+  text-indent: 0.34em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  background: linear-gradient(115deg, #c3cad7 5%, #566078 95%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  user-select: none;
 }

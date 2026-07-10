@@ -99,6 +99,7 @@ type PersistedSettings = {
   videoVolume?: number
   videoMuted?: boolean
   filmstripVisible?: boolean
+  fileBadgeVisible?: boolean
   videoBarHidden?: boolean
   videoBarWidth?: number | null
   videoBarX?: number
@@ -498,6 +499,7 @@ async function createWindow() {
   mainWindow.on('enter-full-screen', sendFullscreenState)
   mainWindow.on('leave-full-screen', sendFullscreenState)
   mainWindow.on('close', persistWindowBoundsSync)
+  mainWindow.on('blur', stopWindowDrag)
 
   const devServerUrl = process.env.VITE_DEV_SERVER_URL
   const startUrl = devServerUrl ?? pathToFileURL(rendererHtmlPath).toString()
@@ -649,6 +651,44 @@ ipcMain.handle('viewer:delete-item', async (_event, filePath: string) => {
 
 ipcMain.handle('viewer:show-in-folder', async (_event, filePath: string) => {
   shell.showItemInFolder(filePath)
+})
+
+// Middle-drag window move: the renderer only signals start/stop, and the main
+// process follows the cursor itself. Renderer mousemove events stall while the
+// window is repositioned under a stationary cursor, so polling here is the
+// only way to keep the drag smooth.
+let windowDragTimer: NodeJS.Timeout | null = null
+
+function stopWindowDrag() {
+  if (windowDragTimer === null) return
+  clearInterval(windowDragTimer)
+  windowDragTimer = null
+}
+
+ipcMain.on('viewer:window-drag', (_event, active: boolean) => {
+  if (!active) {
+    stopWindowDrag()
+    return
+  }
+
+  if (windowDragTimer !== null || !mainWindow || mainWindow.isDestroyed()) return
+  if (mainWindow.isFullScreen() || mainWindow.isMaximized()) return
+
+  const cursorStart = screen.getCursorScreenPoint()
+  const [windowStartX, windowStartY] = mainWindow.getPosition()
+
+  windowDragTimer = setInterval(() => {
+    if (!mainWindow || mainWindow.isDestroyed()) {
+      stopWindowDrag()
+      return
+    }
+
+    const cursor = screen.getCursorScreenPoint()
+    mainWindow.setPosition(
+      windowStartX + cursor.x - cursorStart.x,
+      windowStartY + cursor.y - cursorStart.y
+    )
+  }, 16)
 })
 
 const thumbnailCache = new Map<string, string | null>()

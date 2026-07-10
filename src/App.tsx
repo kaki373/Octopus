@@ -392,12 +392,17 @@ export default function App() {
   const [controlsIdle, setControlsIdle] = useState(false)
   const [controlsHovered, setControlsHovered] = useState(false)
   const [filmstripVisible, setFilmstripVisible] = useState(true)
+  const [fileBadgeVisible, setFileBadgeVisible] = useState(true)
   const [videoBarHidden, setVideoBarHidden] = useState(false)
   const [videoBarWidth, setVideoBarWidth] = useState<number | null>(null)
   const [videoBarPos, setVideoBarPos] = useState<Point>({ x: 0, y: 0 })
   const [stripViewport, setStripViewport] = useState({ left: 0, width: 0 })
+  const [settingsMenuOpen, setSettingsMenuOpen] = useState(false)
+  const [settingsMenuLeft, setSettingsMenuLeft] = useState(0)
 
   const videoRef = useRef<HTMLVideoElement | null>(null)
+  const settingsMenuRef = useRef<HTMLDivElement | null>(null)
+  const settingsButtonRef = useRef<HTMLButtonElement | null>(null)
   const seekScrubbingRef = useRef(false)
   const controlsIdleTimerRef = useRef<number | null>(null)
   const filmstripRef = useRef<HTMLDivElement | null>(null)
@@ -814,6 +819,19 @@ export default function App() {
     void window.viewerApi.showInFolder(currentEntry.path)
   }
 
+  function toggleSettingsMenu() {
+    if (settingsMenuOpen) {
+      setSettingsMenuOpen(false)
+      return
+    }
+
+    const rect = settingsButtonRef.current?.getBoundingClientRect()
+    if (rect) {
+      setSettingsMenuLeft(clamp(rect.left, 8, Math.max(8, window.innerWidth - 240)))
+    }
+    setSettingsMenuOpen(true)
+  }
+
   function goToIndex(index: number) {
     const nextEntry = sortedEntries[index]
     if (!nextEntry) return
@@ -964,6 +982,9 @@ export default function App() {
         if (typeof settings.filmstripVisible === 'boolean') {
           setFilmstripVisible(settings.filmstripVisible)
         }
+        if (typeof settings.fileBadgeVisible === 'boolean') {
+          setFileBadgeVisible(settings.fileBadgeVisible)
+        }
         if (typeof settings.videoBarHidden === 'boolean') setVideoBarHidden(settings.videoBarHidden)
         if (typeof settings.videoBarWidth === 'number' && Number.isFinite(settings.videoBarWidth)) {
           setVideoBarWidth(Math.max(320, settings.videoBarWidth))
@@ -998,6 +1019,7 @@ export default function App() {
           videoVolume,
           videoMuted,
           filmstripVisible,
+          fileBadgeVisible,
           videoBarHidden,
           videoBarWidth,
           videoBarX: videoBarPos.x,
@@ -1015,6 +1037,7 @@ export default function App() {
     videoVolume,
     videoMuted,
     filmstripVisible,
+    fileBadgeVisible,
     videoBarHidden,
     videoBarWidth,
     videoBarPos.x,
@@ -1482,6 +1505,70 @@ export default function App() {
   }, [])
 
   useEffect(() => {
+    if (!settingsMenuOpen) return
+
+    const onPointerDown = (event: PointerEvent) => {
+      const target = event.target
+      if (!(target instanceof Node)) return
+      if (settingsMenuRef.current?.contains(target)) return
+      if (settingsButtonRef.current?.contains(target)) return
+      setSettingsMenuOpen(false)
+    }
+
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        // Capture phase so the global handler doesn't also exit fullscreen.
+        event.stopPropagation()
+        setSettingsMenuOpen(false)
+      }
+    }
+
+    window.addEventListener('pointerdown', onPointerDown, true)
+    window.addEventListener('keydown', onKeyDown, true)
+
+    return () => {
+      window.removeEventListener('pointerdown', onPointerDown, true)
+      window.removeEventListener('keydown', onKeyDown, true)
+    }
+  }, [settingsMenuOpen])
+
+  useEffect(() => {
+    if (!window.viewerApi) return
+
+    const endWindowDrag = () => window.viewerApi.setWindowDrag(false)
+
+    const onPointerDown = (event: PointerEvent) => {
+      if (event.button !== 1) return
+      event.preventDefault()
+      window.viewerApi.setWindowDrag(true)
+    }
+
+    const onPointerUp = (event: PointerEvent) => {
+      if (event.button === 1) endWindowDrag()
+    }
+
+    const onMouseDown = (event: MouseEvent) => {
+      // Chromium starts middle-button autoscroll on mousedown unless cancelled.
+      if (event.button === 1) event.preventDefault()
+    }
+
+    window.addEventListener('pointerdown', onPointerDown, true)
+    window.addEventListener('pointerup', onPointerUp, true)
+    window.addEventListener('pointercancel', endWindowDrag, true)
+    window.addEventListener('mousedown', onMouseDown, true)
+    window.addEventListener('blur', endWindowDrag)
+
+    return () => {
+      endWindowDrag()
+      window.removeEventListener('pointerdown', onPointerDown, true)
+      window.removeEventListener('pointerup', onPointerUp, true)
+      window.removeEventListener('pointercancel', endWindowDrag, true)
+      window.removeEventListener('mousedown', onMouseDown, true)
+      window.removeEventListener('blur', endWindowDrag)
+    }
+  }, [])
+
+  useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
       if (isEditableTarget(event.target)) return
 
@@ -1855,38 +1942,56 @@ export default function App() {
             {filmstripVisible ? '一覧を隠す' : '一覧'}
           </button>
           <button
-            className="ghost-button"
+            className="ghost-button icon-button"
             title="エクスプローラーでファイルの場所を開く (E)"
+            aria-label="エクスプローラーでファイルの場所を開く"
             disabled={!currentEntry}
             onClick={handleShowInFolder}
           >
-            場所
+            <svg viewBox="0 0 16 16" aria-hidden="true">
+              <path d="M1.5 4.4c0-.66.54-1.2 1.2-1.2h3.02c.35 0 .68.15.9.42l.83.98h5.85c.66 0 1.2.54 1.2 1.2v5.8c0 .66-.54 1.2-1.2 1.2H2.7c-.66 0-1.2-.54-1.2-1.2z" />
+            </svg>
           </button>
           <button
-            className="ghost-button danger"
-            data-testid="delete-button"
-            title="ファイルをごみ箱に移動 (Delete)"
-            disabled={!currentEntry}
-            onClick={() => void handleDeleteCurrent()}
+            ref={settingsButtonRef}
+            className={settingsMenuOpen ? 'ghost-button icon-button active' : 'ghost-button icon-button'}
+            title="再生設定"
+            aria-label="再生設定"
+            aria-expanded={settingsMenuOpen}
+            onClick={toggleSettingsMenu}
           >
-            削除
+            <svg viewBox="0 0 16 16" aria-hidden="true">
+              <path d="M9.405 1.05c-.413-1.4-2.397-1.4-2.81 0l-.1.34a1.464 1.464 0 0 1-2.105.872l-.31-.17c-1.283-.698-2.686.705-1.987 1.987l.169.311c.446.82.023 1.841-.872 2.105l-.34.1c-1.4.413-1.4 2.397 0 2.81l.34.1a1.464 1.464 0 0 1 .872 2.105l-.17.31c-.698 1.283.705 2.686 1.987 1.987l.311-.169a1.464 1.464 0 0 1 2.105.872l.1.34c.413 1.4 2.397 1.4 2.81 0l.1-.34a1.464 1.464 0 0 1 2.105-.872l.31.17c1.283.698 2.686-.705 1.987-1.987l-.169-.311a1.464 1.464 0 0 1 .872-2.105l.34-.1c1.4-.413 1.4-2.397 0-2.81l-.34-.1a1.464 1.464 0 0 1-.872-2.105l.17-.31c.698-1.283-.705-2.686-1.987-1.987l-.311.169a1.464 1.464 0 0 1-2.105-.872zM8 10.93a2.929 2.929 0 1 1 0-5.86 2.929 2.929 0 0 1 0 5.858z" />
+            </svg>
           </button>
-          <label className="toggle">
-            <input
-              type="checkbox"
-              checked={motionAutoplay}
-              onChange={(event) => setMotionAutoplay(event.target.checked)}
-            />
-            動画を自動再生
-          </label>
-          <label className="toggle">
-            <input
-              type="checkbox"
-              checked={audioAutoplay}
-              onChange={(event) => setAudioAutoplay(event.target.checked)}
-            />
-            音声を自動再生
-          </label>
+          {settingsMenuOpen ? (
+            <div className="settings-menu" ref={settingsMenuRef} style={{ left: settingsMenuLeft }}>
+              <label className="toggle">
+                <input
+                  type="checkbox"
+                  checked={motionAutoplay}
+                  onChange={(event) => setMotionAutoplay(event.target.checked)}
+                />
+                動画を自動再生
+              </label>
+              <label className="toggle">
+                <input
+                  type="checkbox"
+                  checked={audioAutoplay}
+                  onChange={(event) => setAudioAutoplay(event.target.checked)}
+                />
+                音声を自動再生
+              </label>
+              <label className="toggle">
+                <input
+                  type="checkbox"
+                  checked={fileBadgeVisible}
+                  onChange={(event) => setFileBadgeVisible(event.target.checked)}
+                />
+                ファイル名を表示
+              </label>
+            </div>
+          ) : null}
           <div className="path-pill compact">
             {folderPath ?? 'ファイルをドロップしてください'}
           </div>
@@ -1923,20 +2028,7 @@ export default function App() {
             ) : null}
 
             {!folderPath && !loadingFolder ? (
-              <div className="empty-state">
-                <p className="eyebrow">OCTOPUS — EVERY MEDIA VIEWER</p>
-                <h2>ファイルをドロップして開始</h2>
-                <p>
-                  画像・動画・音声ファイルをこのウィンドウにドロップすると、そのファイルが入っている
-                  フォルダ直下を読み込んで表示します。
-                </p>
-                <div className="hint-list">
-                  <div>矢印キーと PageUp / PageDown で前後に移動できます。</div>
-                  <div>T でサムネイル一覧、Delete でごみ箱へ移動、E で場所を開きます。</div>
-                  <div>動画は Space で再生 / 一時停止、, / . でコマ送り、M でミュートです。</div>
-                  <div>右クリック + ホイールで拡大縮小、0 で全体表示、H で高さ合わせです。</div>
-                </div>
-              </div>
+              <p className="drop-hero">Drop media here</p>
             ) : null}
 
             {loadingFolder ? (
@@ -2095,26 +2187,21 @@ export default function App() {
                   </div>
                 ) : null}
 
-                <div
-                  className={
-                    // Lift the badges only while the bar actually sits at the bottom;
-                    // once the user drags it elsewhere the default spot is free again.
-                    currentEntry.kind === 'video' && !videoBarHidden && videoBarPos.y > -60
-                      ? 'badge-row raised'
-                      : 'badge-row'
-                  }
-                >
-                  <div className="badge">
-                    {mediaKindLabel(currentEntry.kind)} / {currentEntry.name}
+                {fileBadgeVisible ? (
+                  <div
+                    className={
+                      // Lift the badge only while the bar actually sits at the bottom;
+                      // once the user drags it elsewhere the default spot is free again.
+                      currentEntry.kind === 'video' && !videoBarHidden && videoBarPos.y > -60
+                        ? 'badge-row raised'
+                        : 'badge-row'
+                    }
+                  >
+                    <div className="badge">
+                      {mediaKindLabel(currentEntry.kind)} / {currentEntry.name}
+                    </div>
                   </div>
-                  <div className="hint-card fit-mode-card">
-                    {fitMode === 'manual'
-                      ? `${(scale * 100).toFixed(0)}%`
-                      : fitMode === 'height'
-                        ? '高さ合わせ'
-                        : '全体表示'}
-                  </div>
-                </div>
+                ) : null}
 
                 {currentEntry.kind === 'video' && displaySource && !loadingItem && !videoBarHidden ? (
                   <div

@@ -1,3 +1,11 @@
+@font-face {
+  font-family: 'Space Grotesk';
+  /* Variable font, latin subset only; Japanese text falls through to Yu Gothic UI. */
+  src: url('./assets/fonts/space-grotesk-latin.woff2') format('woff2-variations');
+  font-weight: 300 700;
+  font-display: swap;
+}
+
 :root {
   /* Sleek neutral-dark theme. --panel must match titleBarOverlay color in electron/main.ts. */
   --bg: #0f1115;
@@ -15,7 +23,7 @@
   color: var(--text);
   background: var(--bg);
   color-scheme: dark;
-  font-family: "Segoe UI Variable", "Segoe UI", sans-serif;
+  font-family: "Space Grotesk", "Segoe UI Variable", "Segoe UI", "Yu Gothic UI", sans-serif;
   line-height: 1.5;
   font-weight: 400;
   font-synthesis: none;
