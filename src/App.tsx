@@ -136,10 +136,109 @@ function debugLog(message: string, data?: unknown) {
   window.viewerApi.debugLog(message, data)
 }
 
-function mediaKindLabel(kind: MediaKind) {
-  if (kind === 'image') return '画像'
-  if (kind === 'video') return '動画'
-  return '音声'
+type UiLanguage = 'en' | 'ja'
+
+const enStrings = {
+  fullscreenTitle: 'Fullscreen (F)',
+  fullscreenAria: 'Fullscreen',
+  fit: 'Fit',
+  fitTitle: 'Fit to window (0)',
+  fitHeight: 'Fit Height',
+  fitHeightTitle: 'Fit to height (H)',
+  zoomTitle: 'Click for 100%, drag to zoom',
+  sortName: 'Name',
+  sortDateTaken: 'Date Taken',
+  sortCreated: 'Created',
+  sortModified: 'Modified',
+  asc: 'Asc',
+  desc: 'Desc',
+  hideThumbs: 'Hide Thumbs',
+  thumbs: 'Thumbs',
+  thumbsTitle: 'Toggle thumbnails (T)',
+  explorerTitle: 'Show in Explorer (E)',
+  explorerAria: 'Show in Explorer',
+  settings: 'Settings',
+  autoplayVideo: 'Autoplay video',
+  autoplayAudio: 'Autoplay audio',
+  showFilename: 'Show filename',
+  japaneseUi: 'Japanese labels',
+  kindImage: 'Image',
+  kindVideo: 'Video',
+  kindAudio: 'Audio',
+  shot: 'Shot',
+  prev: 'Previous',
+  next: 'Next',
+  controls: 'Controls',
+  showControlsTitle: 'Show controls (C)',
+  hideControlsTitle: 'Hide controls (C)',
+  hideControlsAria: 'Hide controls',
+  dragMove: 'Drag to move',
+  frameBack: 'Frame back (,)',
+  frameBackAria: 'Frame back',
+  frameForward: 'Frame forward (.)',
+  frameForwardAria: 'Frame forward',
+  play: 'Play',
+  pause: 'Pause',
+  mute: 'Mute',
+  unmute: 'Unmute',
+  seek: 'Seek',
+  volume: 'Volume',
+}
+
+const jaStrings: typeof enStrings = {
+  fullscreenTitle: '\u5168\u753b\u9762 (F)',
+  fullscreenAria: '\u5168\u753b\u9762',
+  fit: '\u5168\u4f53\u8868\u793a',
+  fitTitle: '\u5168\u4f53\u8868\u793a (0)',
+  fitHeight: '\u9ad8\u3055\u5408\u308f\u305b',
+  fitHeightTitle: '\u9ad8\u3055\u5408\u308f\u305b (H)',
+  zoomTitle: '\u30af\u30ea\u30c3\u30af\u3067100%\u3001\u5de6\u53f3\u30c9\u30e9\u30c3\u30b0\u3067\u30ba\u30fc\u30e0',
+  sortName: '\u30d5\u30a1\u30a4\u30eb\u540d\u9806',
+  sortDateTaken: '\u64ae\u5f71\u65e5\u6642\u9806',
+  sortCreated: '\u4f5c\u6210\u65e5\u6642\u9806',
+  sortModified: '\u66f4\u65b0\u65e5\u6642\u9806',
+  asc: '\u6607\u9806',
+  desc: '\u964d\u9806',
+  hideThumbs: '\u4e00\u89a7\u3092\u96a0\u3059',
+  thumbs: '\u4e00\u89a7',
+  thumbsTitle: '\u30b5\u30e0\u30cd\u30a4\u30eb\u4e00\u89a7\u306e\u8868\u793a\u5207\u66ff (T)',
+  explorerTitle: '\u30a8\u30af\u30b9\u30d7\u30ed\u30fc\u30e9\u30fc\u3067\u30d5\u30a1\u30a4\u30eb\u306e\u5834\u6240\u3092\u958b\u304f (E)',
+  explorerAria: '\u30a8\u30af\u30b9\u30d7\u30ed\u30fc\u30e9\u30fc\u3067\u30d5\u30a1\u30a4\u30eb\u306e\u5834\u6240\u3092\u958b\u304f',
+  settings: '\u8a2d\u5b9a',
+  autoplayVideo: '\u52d5\u753b\u3092\u81ea\u52d5\u518d\u751f',
+  autoplayAudio: '\u97f3\u58f0\u3092\u81ea\u52d5\u518d\u751f',
+  showFilename: '\u30d5\u30a1\u30a4\u30eb\u540d\u3092\u8868\u793a',
+  japaneseUi: '\u65e5\u672c\u8a9e\u8868\u793a',
+  kindImage: '\u753b\u50cf',
+  kindVideo: '\u52d5\u753b',
+  kindAudio: '\u97f3\u58f0',
+  shot: '\u64ae\u5f71',
+  prev: '\u524d\u3078',
+  next: '\u6b21\u3078',
+  controls: '\u30b3\u30f3\u30c8\u30ed\u30fc\u30eb',
+  showControlsTitle: '\u30b3\u30f3\u30c8\u30ed\u30fc\u30eb\u3092\u8868\u793a (C)',
+  hideControlsTitle: '\u30b3\u30f3\u30c8\u30ed\u30fc\u30eb\u3092\u96a0\u3059 (C)',
+  hideControlsAria: '\u30b3\u30f3\u30c8\u30ed\u30fc\u30eb\u3092\u96a0\u3059',
+  dragMove: '\u30c9\u30e9\u30c3\u30b0\u3067\u30d0\u30fc\u3092\u79fb\u52d5',
+  frameBack: '1\u30b3\u30de\u623b\u308b (,)',
+  frameBackAria: '1\u30b3\u30de\u623b\u308b',
+  frameForward: '1\u30b3\u30de\u9032\u3080 (.)',
+  frameForwardAria: '1\u30b3\u30de\u9032\u3080',
+  play: '\u518d\u751f',
+  pause: '\u4e00\u6642\u505c\u6b62',
+  mute: '\u30df\u30e5\u30fc\u30c8',
+  unmute: '\u30df\u30e5\u30fc\u30c8\u89e3\u9664',
+  seek: '\u518d\u751f\u4f4d\u7f6e',
+  volume: '\u97f3\u91cf',
+}
+
+const uiStrings: Record<UiLanguage, typeof enStrings> = { en: enStrings, ja: jaStrings }
+
+function mediaKindLabel(kind: MediaKind, lang: UiLanguage) {
+  const t = uiStrings[lang]
+  if (kind === 'image') return t.kindImage
+  if (kind === 'video') return t.kindVideo
+  return t.kindAudio
 }
 
 function clamp(value: number, min: number, max: number) {
@@ -151,7 +250,7 @@ function samePoint(left: Point, right: Point) {
 }
 
 function formatTimestamp(value: number | null) {
-  if (!value) return 'なし'
+  if (!value) return '—'
 
   return new Intl.DateTimeFormat('ja-JP', {
     dateStyle: 'medium',
@@ -399,6 +498,7 @@ export default function App() {
   const [stripViewport, setStripViewport] = useState({ left: 0, width: 0 })
   const [settingsMenuOpen, setSettingsMenuOpen] = useState(false)
   const [settingsMenuLeft, setSettingsMenuLeft] = useState(0)
+  const [uiLanguage, setUiLanguage] = useState<UiLanguage>('en')
 
   const videoRef = useRef<HTMLVideoElement | null>(null)
   const settingsMenuRef = useRef<HTMLDivElement | null>(null)
@@ -437,6 +537,8 @@ export default function App() {
     pointerId: number
   } | null>(null)
   const sourceCacheRef = useRef(new Map<string, DisplaySource>())
+
+  const t = uiStrings[uiLanguage]
 
   const sortedEntries = useMemo(
     () => sortEntries(entries, sortField, sortDirection),
@@ -985,6 +1087,9 @@ export default function App() {
         if (typeof settings.fileBadgeVisible === 'boolean') {
           setFileBadgeVisible(settings.fileBadgeVisible)
         }
+        if (settings.uiLanguage === 'en' || settings.uiLanguage === 'ja') {
+          setUiLanguage(settings.uiLanguage)
+        }
         if (typeof settings.videoBarHidden === 'boolean') setVideoBarHidden(settings.videoBarHidden)
         if (typeof settings.videoBarWidth === 'number' && Number.isFinite(settings.videoBarWidth)) {
           setVideoBarWidth(Math.max(320, settings.videoBarWidth))
@@ -1020,6 +1125,7 @@ export default function App() {
           videoMuted,
           filmstripVisible,
           fileBadgeVisible,
+          uiLanguage,
           videoBarHidden,
           videoBarWidth,
           videoBarX: videoBarPos.x,
@@ -1038,6 +1144,7 @@ export default function App() {
     videoMuted,
     filmstripVisible,
     fileBadgeVisible,
+    uiLanguage,
     videoBarHidden,
     videoBarWidth,
     videoBarPos.x,
@@ -1892,21 +1999,31 @@ export default function App() {
             Octopus
           </div>
           <button
-            className="ghost-button"
+            className="ghost-button icon-button"
+            title={t.fullscreenTitle}
+            aria-label={t.fullscreenAria}
             onClick={() => void window.viewerApi.setFullscreen(!isFullscreen)}
           >
-            全画面
+            <svg viewBox="0 0 16 16" aria-hidden="true">
+              <path
+                d="M2 6V3.2C2 2.54 2.54 2 3.2 2H6M10 2h2.8c.66 0 1.2.54 1.2 1.2V6M14 10v2.8c0 .66-.54 1.2-1.2 1.2H10M6 14H3.2C2.54 14 2 13.46 2 12.8V10"
+                stroke="currentColor"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                fill="none"
+              />
+            </svg>
           </button>
-          <button className="ghost-button" onClick={resetToFit}>
-            全体表示
+          <button className="ghost-button" title={t.fitTitle} onClick={resetToFit}>
+            {t.fit}
           </button>
-          <button className="ghost-button" onClick={fitToHeight}>
-            高さ合わせ
+          <button className="ghost-button" title={t.fitHeightTitle} onClick={fitToHeight}>
+            {t.fitHeight}
           </button>
           <button
             className={zoomButtonClassName}
             data-testid="zoom-actual-button"
-            title="クリックで100%、左右ドラッグでズーム"
+            title={t.zoomTitle}
             onClick={handleZoomControlClick}
             onPointerDown={handleZoomControlPointerDown}
             onPointerMove={handleZoomControlPointerMove}
@@ -1920,31 +2037,31 @@ export default function App() {
             value={sortField}
             onChange={(event) => setSortField(event.target.value as SortField)}
           >
-            <option value="name">ファイル名順</option>
-            <option value="dateTaken">撮影日時順</option>
-            <option value="created">作成日時順</option>
-            <option value="modified">更新日時順</option>
+            <option value="name">{t.sortName}</option>
+            <option value="dateTaken">{t.sortDateTaken}</option>
+            <option value="created">{t.sortCreated}</option>
+            <option value="modified">{t.sortModified}</option>
           </select>
           <select
             className="toolbar-select"
             value={sortDirection}
             onChange={(event) => setSortDirection(event.target.value as SortDirection)}
           >
-            <option value="asc">昇順</option>
-            <option value="desc">降順</option>
+            <option value="asc">{t.asc}</option>
+            <option value="desc">{t.desc}</option>
           </select>
           <button
             className="ghost-button"
             data-testid="filmstrip-toggle"
-            title="サムネイル一覧の表示切替 (T)"
+            title={t.thumbsTitle}
             onClick={() => setFilmstripVisible((current) => !current)}
           >
-            {filmstripVisible ? '一覧を隠す' : '一覧'}
+            {filmstripVisible ? t.hideThumbs : t.thumbs}
           </button>
           <button
             className="ghost-button icon-button"
-            title="エクスプローラーでファイルの場所を開く (E)"
-            aria-label="エクスプローラーでファイルの場所を開く"
+            title={t.explorerTitle}
+            aria-label={t.explorerAria}
             disabled={!currentEntry}
             onClick={handleShowInFolder}
           >
@@ -1955,8 +2072,8 @@ export default function App() {
           <button
             ref={settingsButtonRef}
             className={settingsMenuOpen ? 'ghost-button icon-button active' : 'ghost-button icon-button'}
-            title="再生設定"
-            aria-label="再生設定"
+            title={t.settings}
+            aria-label={t.settings}
             aria-expanded={settingsMenuOpen}
             onClick={toggleSettingsMenu}
           >
@@ -1972,7 +2089,7 @@ export default function App() {
                   checked={motionAutoplay}
                   onChange={(event) => setMotionAutoplay(event.target.checked)}
                 />
-                動画を自動再生
+                {t.autoplayVideo}
               </label>
               <label className="toggle">
                 <input
@@ -1980,7 +2097,7 @@ export default function App() {
                   checked={audioAutoplay}
                   onChange={(event) => setAudioAutoplay(event.target.checked)}
                 />
-                音声を自動再生
+                {t.autoplayAudio}
               </label>
               <label className="toggle">
                 <input
@@ -1988,13 +2105,19 @@ export default function App() {
                   checked={fileBadgeVisible}
                   onChange={(event) => setFileBadgeVisible(event.target.checked)}
                 />
-                ファイル名を表示
+                {t.showFilename}
+              </label>
+              <label className="toggle">
+                <input
+                  type="checkbox"
+                  checked={uiLanguage === 'ja'}
+                  onChange={(event) => setUiLanguage(event.target.checked ? 'ja' : 'en')}
+                />
+                {t.japaneseUi}
               </label>
             </div>
           ) : null}
-          <div className="path-pill compact">
-            {folderPath ?? 'ファイルをドロップしてください'}
-          </div>
+          {folderPath ? <div className="path-pill compact">{folderPath}</div> : null}
         </div>
       </header>
 
@@ -2018,14 +2141,7 @@ export default function App() {
               rightButtonDownRef.current = false
             }}
           >
-            {dropActive ? (
-              <div className="drop-overlay">
-                <div className="drop-overlay-card">
-                  <strong>ファイルをドロップ</strong>
-                  <span>ドロップしたファイルのあるフォルダを開き、そのファイルから表示します。</span>
-                </div>
-              </div>
-            ) : null}
+            {dropActive ? <div className="drop-overlay" /> : null}
 
             {!folderPath && !loadingFolder ? (
               <p className="drop-hero">Drop media here</p>
@@ -2057,13 +2173,13 @@ export default function App() {
             {currentEntry && !itemError ? (
               <div className="stage-inner">
                 {currentIndex > 0 ? (
-                  <button className="nav-button prev" onClick={() => goToRelative(-1)} aria-label="前へ">
+                  <button className="nav-button prev" onClick={() => goToRelative(-1)} aria-label={t.prev}>
                     ‹
                   </button>
                 ) : null}
 
                 {currentIndex < sortedEntries.length - 1 ? (
-                  <button className="nav-button next" onClick={() => goToRelative(1)} aria-label="次へ">
+                  <button className="nav-button next" onClick={() => goToRelative(1)} aria-label={t.next}>
                     ›
                   </button>
                 ) : null}
@@ -2198,7 +2314,7 @@ export default function App() {
                     }
                   >
                     <div className="badge">
-                      {mediaKindLabel(currentEntry.kind)} / {currentEntry.name}
+                      {mediaKindLabel(currentEntry.kind, uiLanguage)} / {currentEntry.name}
                     </div>
                   </div>
                 ) : null}
@@ -2220,7 +2336,7 @@ export default function App() {
                   >
                     <div
                       className="vc-grip"
-                      title="ドラッグでバーを移動"
+                      title={t.dragMove}
                       onPointerDown={handleBarGripPointerDown}
                       onPointerMove={handleBarGripPointerMove}
                       onPointerUp={handleBarGripPointerUp}
@@ -2239,8 +2355,8 @@ export default function App() {
                       className="vc-button"
                       data-testid="video-step-back"
                       onClick={() => stepVideoFrame(-1)}
-                      title="1コマ戻る (,)"
-                      aria-label="1コマ戻る"
+                      title={t.frameBack}
+                      aria-label={t.frameBackAria}
                     >
                       <svg viewBox="0 0 16 16" aria-hidden="true">
                         <rect x="3" y="2.5" width="2" height="11" rx="0.8" />
@@ -2251,7 +2367,7 @@ export default function App() {
                       className="vc-button"
                       data-testid="video-play-button"
                       onClick={toggleVideoPlayback}
-                      aria-label={isVideoPlaying ? '一時停止' : '再生'}
+                      aria-label={isVideoPlaying ? t.pause : t.play}
                     >
                       {isVideoPlaying ? (
                         <svg viewBox="0 0 16 16" aria-hidden="true">
@@ -2268,8 +2384,8 @@ export default function App() {
                       className="vc-button"
                       data-testid="video-step-forward"
                       onClick={() => stepVideoFrame(1)}
-                      title="1コマ進む (.)"
-                      aria-label="1コマ進む"
+                      title={t.frameForward}
+                      aria-label={t.frameForwardAria}
                     >
                       <svg viewBox="0 0 16 16" aria-hidden="true">
                         <path d="M3 3.4v9.2a.8.8 0 0 0 1.28.64l5.32-4.6a.8.8 0 0 0 0-1.28L4.28 2.76A.8.8 0 0 0 3 3.4z" />
@@ -2297,13 +2413,13 @@ export default function App() {
                       onPointerCancel={() => {
                         seekScrubbingRef.current = false
                       }}
-                      aria-label="再生位置"
+                      aria-label={t.seek}
                     />
                     <span className="vc-time">{formatDuration(videoDuration)}</span>
                     <button
                       className="vc-button"
                       onClick={toggleVideoMute}
-                      aria-label={videoMuted ? 'ミュート解除' : 'ミュート'}
+                      aria-label={videoMuted ? t.unmute : t.mute}
                     >
                       {videoMuted || videoVolume === 0 ? (
                         <svg viewBox="0 0 16 16" aria-hidden="true">
@@ -2338,14 +2454,14 @@ export default function App() {
                       value={videoMuted ? 0 : videoVolume}
                       style={{ '--vc-progress': `${volumePercent}%` } as CSSProperties}
                       onChange={(event) => changeVideoVolume(Number(event.target.value))}
-                      aria-label="音量"
+                      aria-label={t.volume}
                     />
                     <button
                       className="vc-button"
                       data-testid="video-bar-hide"
                       onClick={() => setVideoBarHidden(true)}
-                      title="コントロールを隠す (C)"
-                      aria-label="コントロールを隠す"
+                      title={t.hideControlsTitle}
+                      aria-label={t.hideControlsAria}
                     >
                       <svg viewBox="0 0 16 16" aria-hidden="true">
                         <path
@@ -2372,10 +2488,10 @@ export default function App() {
                   <button
                     className="vc-restore"
                     data-testid="video-bar-restore"
-                    title="コントロールを表示 (C)"
+                    title={t.showControlsTitle}
                     onClick={() => setVideoBarHidden(false)}
                   >
-                    コントロール
+                    {t.controls}
                   </button>
                 ) : null}
               </div>
@@ -2452,12 +2568,10 @@ export default function App() {
         </div>
         <div className="counter">
           {currentEntry
-            ? `${mediaKindLabel(currentEntry.kind)} / ${formatFileSize(currentEntry.size)} / 撮影 ${formatTimestamp(
+            ? `${mediaKindLabel(currentEntry.kind, uiLanguage)} / ${formatFileSize(currentEntry.size)} / ${t.shot} ${formatTimestamp(
                 currentEntry.dateTakenAt ?? currentEntry.createdAt
               )}`
-            : folderPath
-              ? 'フォルダ内の対応ファイルを表示中'
-              : 'ファイルをドロップしてください'}
+            : ''}
         </div>
       </footer>
     </div>

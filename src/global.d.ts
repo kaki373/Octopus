@@ -58,6 +58,7 @@ declare global {
     videoMuted?: boolean
     filmstripVisible?: boolean
     fileBadgeVisible?: boolean
+    uiLanguage?: 'en' | 'ja'
     videoBarHidden?: boolean
     videoBarWidth?: number | null
     videoBarX?: number

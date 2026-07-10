@@ -100,6 +100,7 @@ type PersistedSettings = {
   videoMuted?: boolean
   filmstripVisible?: boolean
   fileBadgeVisible?: boolean
+  uiLanguage?: string
   videoBarHidden?: boolean
   videoBarWidth?: number | null
   videoBarX?: number
